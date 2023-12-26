@@ -46,6 +46,7 @@ public class CartItemController : ControllerBase
         var cartIterms = await query.ToListAsync();
         var newiterms = cartIterms.Select(ci => new CartItemResponse
         {
+            CartItemId = ci.Id,
             ItemId = ci.ItemId,
             Quantity = ci.Quantity,
             ItemName = ci.Item.Name,

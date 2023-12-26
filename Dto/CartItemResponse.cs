@@ -4,6 +4,7 @@ namespace shoppingcart.Dto;
 
 public class CartItemResponse
 {
+    public int CartItemId { get; set; }
     [Required]
     [Range(1, int.MaxValue)]
     public int ItemId { get; set; }

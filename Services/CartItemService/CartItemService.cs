@@ -36,6 +36,12 @@ public class CartItemService : ICartItemService
 
     public async Task<CartItem?> GetCartItem(int id)
     {
-        return await _context.CartItems.FindAsync(id);
+        return await _context.CartItems.Include(ci => ci.Item).Include(ci => ci.User).Where(ci => ci.Id == id).FirstOrDefaultAsync();
+    }
+
+    public async Task<CartItem?> GetCartItemByUser(int cartItemId, int userId)
+    {
+        var cartItem = await _context.CartItems.Include(ci => ci.Item).Include(ci => ci.User).Where(ci => ci.Id == cartItemId && ci.User.Id == userId).FirstOrDefaultAsync();
+        return cartItem;
     }
 }

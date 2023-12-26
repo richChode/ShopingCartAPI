@@ -9,4 +9,5 @@ public interface ICartItemService
     IQueryable<CartItem> GetAllCartItemsAsQuery();
 
     Task<CartItem?> GetCartItem(int id);
+    Task<CartItem?> GetCartItemByUser(int cartItemId, int userId);
 }

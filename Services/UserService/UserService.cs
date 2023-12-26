@@ -3,6 +3,7 @@ using shoppingcart.Data;
 using shoppingcart.Dto;
 using shoppingcart.Exceptions;
 using shoppingcart.Models;
+using shoppingcart.Services.CartItemService;
 using shoppingcart.Services.ItemService;
 using shoppingcart.Services.TokenGeneratorService;
 
@@ -13,12 +14,14 @@ public class UserService : IUserService
     private readonly AppDbContext _context;
     private readonly IItemService _itemService;
     private readonly ITokenGeneratorService _tokenGenerator;
+    private readonly ICartItemService _cartItemService;
 
-    public UserService(AppDbContext context, IItemService itemService, ITokenGeneratorService tokenGenerator)
+    public UserService(AppDbContext context, IItemService itemService, ITokenGeneratorService tokenGenerator, ICartItemService cartItemService)
     {
         _context = context;
         _itemService = itemService;
         _tokenGenerator = tokenGenerator;
+        _cartItemService = cartItemService;
 
     }
     public async Task<User?> CreateUser(RegisterRequest registerDetails)
@@ -60,28 +63,30 @@ public class UserService : IUserService
 
     public async Task<bool> AddCartItem(NewCartItem newCartItem, User user)
     {
-        var item = await _itemService.GetItemById(newCartItem.Id);
+        var item = await _itemService.GetItemById(newCartItem.ItemId);
         if (item != null)
         {
             if (item.Quantity < newCartItem.Quantity)
             {
                 throw new QuantityError("Available quantity is less than specefied quantity");
             }
-            var cartItem = GetCartItem(newCartItem.Id, user);
+            var cartItem = GetCartItemByItemId(newCartItem.ItemId, user);
             if (cartItem != null)
             {
                 cartItem.Quantity += newCartItem.Quantity;
-                return true;
             }
-            var addNew = new CartItem
+            else
             {
-                ItemId = newCartItem.Id,
-                Item = item,
-                Date = DateTime.Now.ToUniversalTime(),
-                User = user,
-                Quantity = newCartItem.Quantity
-            };
-            user.Cart.CartItems.Add(addNew);
+                var addNew = new CartItem
+                {
+                    ItemId = newCartItem.ItemId,
+                    Item = item,
+                    Date = DateTime.Now.ToUniversalTime(),
+                    User = user,
+                    Quantity = newCartItem.Quantity
+                };
+                user.Cart.CartItems.Add(addNew);
+            }
             item.Quantity -= newCartItem.Quantity;
             return true;
         }
@@ -94,7 +99,7 @@ public class UserService : IUserService
         .ThenInclude(ci => ci.Item).Where(u => u.Id == userId).FirstOrDefaultAsync();
     }
 
-    public CartItem? GetCartItem(int itemId, User user)
+    public CartItem? GetCartItemByItemId(int itemId, User user)
     {
         var cartItem = user.Cart.CartItems.FirstOrDefault(ci => ci.Item.Id == itemId);
         if (cartItem == null)
@@ -111,16 +116,12 @@ public class UserService : IUserService
 
     public async Task<bool> RemoveCartItem(int cartItemId, User user)
     {
-        var cartItem = GetCartItem(cartItemId, user);
+        var cartItem = await _cartItemService.GetCartItemByUser(cartItemId, user.Id);
         if (cartItem != null)
         {
-            var item = await _itemService.GetItemById(cartItem.ItemId);
-            if (item != null)
-            {
-                user.Cart.CartItems.Remove(cartItem);
-                item.Quantity += cartItem.Quantity;
-                return true;
-            }
+            cartItem.Item.Quantity += cartItem.Quantity;
+            user.Cart.CartItems.Remove(cartItem);
+            return true;
         }
         return false;
     }

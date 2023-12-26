@@ -10,7 +10,7 @@ public interface IUserService
     Task<User?> CheckUsername(string username);
     Task<User?> GetUserById(int id);
 
-    CartItem? GetCartItem(int itemId, User user);
+    CartItem? GetCartItemByItemId(int itemId, User user);
 
     Task<bool> RemoveCartItem(int itemId, User user);
 
