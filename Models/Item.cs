@@ -9,6 +9,6 @@ public class Item
     public string Name { get; set; } = null!;
     [Range(1, 10000)]
     public int Quantity { get; set; }
-    [Range(0, int.MaxValue)]
+    [Range(0, double.MaxValue)]
     public double Price { get; set; }
 }

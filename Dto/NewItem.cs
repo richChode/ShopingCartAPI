@@ -10,6 +10,6 @@ public class NewItem
     [Range(0, 10000)]
     public int Quantity { get; set; }
     [Required]
-    [Range(0, int.MaxValue)]
+    [Range(0, double.MaxValue)]
     public double Price { get; set; }
 }
